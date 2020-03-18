@@ -59,7 +59,7 @@ states_allrecs <- states_allrecs %>%
 
 #limit to just the 50 states and DC
 states_allrecs <- states_allrecs %>% 
-  filter(st %in% c("GU",
+  filter(!st %in% c("GU",
   "VI",
   "PR"))
 
@@ -87,36 +87,75 @@ foodserv_all %>%
 ```
 
 Just a handful. No worries then, we can work with that.    
+
+
+Do individually listed items add up to the total major? Look at a grand totals and then a few individual states to see.
+```{r}
+
+foodserv_all %>% 
+  group_by(occ_group) %>% 
+  summarise(sum(tot_emp, na.rm = TRUE))
+
+
+foodserv_all %>% 
+  filter(st == "NJ") %>% 
+  group_by(occ_group) %>% 
+  summarise(sum(tot_emp, na.rm = TRUE))
+
+foodserv_all %>% 
+  filter(st == "CA") %>% 
+  group_by(occ_group) %>% 
+  summarise(sum(tot_emp, na.rm = TRUE))
+
+foodserv_all %>% 
+  filter(st == "MO") %>% 
+  group_by(occ_group) %>% 
+  summarise(sum(tot_emp, na.rm = TRUE))
+
+
+
+
+```
+
+This is pretty close! There could be some NAs among the detailed categories which could increase the spread for certain states, but this appears to be what's going on.  
   
-To keep things simple to start, we'll just look at the overarching total from the major category record for each state.
+
+### States by overall totals
+
+To keep things simple to start, we'll just look at the overarching total from the major category record for each state. 
 
 ```{r}
 
 foodserv_totalsonly <- foodserv_all %>% 
-  filter(occ_code == "35-0000")
+  filter(occ_code == "35-0000") %>% 
+  select(-occ_title, -occ_group)
 
 foodserv_totalsonly
 
-foodserv_all %>% 
-  count(state, st)
+```
 
-
+#Total people employed overall
+```{r}
+#total
+foodserv_totalsonly %>% 
+  summarise(sum(tot_emp))
 
 ```
 
+Which states have the highest rate of employment in this sector per 1000?
 ```{r}
 
+foodserv_totalsonly %>% 
+  arrange(desc(jobs_1000))
 
 
 
 ```
 
-```{r}
 
 
 
 
-```
 
 ```{r}
 
