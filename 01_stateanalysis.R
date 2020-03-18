@@ -36,9 +36,7 @@ states_allrecs <- states_allrecs %>%
     tot_emp,
     jobs_1000,
     h_mean,
-    a_mean,
-    annual,
-    hourly
+    a_mean
   )
 
 
@@ -54,6 +52,16 @@ states_allrecs <- states_allrecs %>%
   )
 
 
+### ISOLATING JUST FOOD PREP AND SERVING RELATED WORKERS ####
+
+allfoodserv <- states_allrecs %>% 
+  filter(str_starts(occ_code, "35-"))
+
+#any missing or redacted? 
+allfoodserv %>% 
+  filter(is.na(tot_emp))
+
+  
 
 
 
