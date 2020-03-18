@@ -56,6 +56,14 @@ states_allrecs <- states_allrecs %>%
     h_mean = as.numeric(h_mean),
     a_mean = as.numeric(a_mean)
   )
+
+#limit to just the 50 states and DC
+states_allrecs <- states_allrecs %>% 
+  filter(st %in% c("GU",
+  "VI",
+  "PR"))
+
+
 ```
 
 *Data source: BLS Occupational Employment Statistics (2018)* 
@@ -65,7 +73,7 @@ states_allrecs <- states_allrecs %>%
 
 ```{r }
 
-allfoodserv <- states_allrecs %>% 
+foodserv_all <- states_allrecs %>% 
   filter(str_starts(occ_code, "35-"))
 
 ```
@@ -73,13 +81,90 @@ allfoodserv <- states_allrecs %>%
 Check to see if any our missing or redacted
 ```{r }
  
-allfoodserv %>% 
+foodserv_all %>% 
   filter(is.na(tot_emp))
 
 ```
 
-Just a handful. No worries then, we can work with that.  
+Just a handful. No worries then, we can work with that.    
+  
+To keep things simple to start, we'll just look at the overarching total from the major category record for each state.
+
+```{r}
+
+foodserv_totalsonly <- foodserv_all %>% 
+  filter(occ_code == "35-0000")
+
+foodserv_totalsonly
+
+foodserv_all %>% 
+  count(state, st)
 
 
+
+```
+
+```{r}
+
+
+
+
+```
+
+```{r}
+
+
+
+
+```
+
+```{r}
+
+
+
+
+```
+
+```{r}
+
+
+
+
+```
+
+```{r}
+
+
+
+
+```
+
+```{r}
+
+
+
+
+```
+
+```{r}
+
+
+
+
+```
+
+```{r}
+
+
+
+
+```
+
+```{r}
+
+
+
+
+```
 
 
