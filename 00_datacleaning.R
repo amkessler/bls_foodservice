@@ -9,12 +9,11 @@ library(writexl)
 
 
 #import data for all states, all occupations
-rawdata <- read_excel("raw_data/oesm18st/state_M2018_dl.xlsx")
+rawstatesdata <- read_excel("raw_data/oesm18st/state_M2018_dl.xlsx")
 
 #clean names
-states_allrecs <- rawdata %>% 
+states_allrecs <- rawstatesdata %>% 
   clean_names()
-
 
 #cut down to only the measures we'll use here:
 
@@ -22,8 +21,6 @@ states_allrecs <- rawdata %>%
 # -- jobs_1000: The number of jobs (employment) in the given occupation per 1,000 jobs in the given area 
 # -- h_mean: Mean hourly wage
 # -- a_mean: Mean annual wage 
-# -- annual: Contains "TRUE" if only the annual wages are released
-# -- hourly:	Contains "TRUE" if only the hourly wages are released
 
 states_allrecs <- states_allrecs %>% 
   select(
@@ -51,17 +48,91 @@ states_allrecs <- states_allrecs %>%
     a_mean = as.numeric(a_mean)
   )
 
-
-### ISOLATING JUST FOOD PREP AND SERVING RELATED WORKERS ####
-
-allfoodserv <- states_allrecs %>% 
-  filter(str_starts(occ_code, "35-"))
-
-#any missing or redacted? 
-allfoodserv %>% 
-  filter(is.na(tot_emp))
-
-  
+#save for use in analysis steps
+saveRDS(states_allrecs, "processed_data/states_allrecs.rds")
 
 
 
+#-------------------------------------------------------------------------
+
+
+##### Now the same thing but for the local MSA-level records #######
+
+rawmsadata <- read_excel("raw_data/oesm18ma/MSA_M2018_dl.xlsx")
+
+#clean names
+msa_allrecs <- rawmsadata %>% 
+  clean_names()
+
+names(msa_allrecs)
+
+#cut down to only the measures we'll use:
+msa_allrecs <- msa_allrecs %>% 
+  select(
+    prim_state,
+    area,
+    area_name,
+    occ_code,
+    occ_title,
+    occ_group,
+    tot_emp,
+    jobs_1000,
+    h_mean,
+    a_mean
+  )
+
+#format columns
+msa_allrecs <- msa_allrecs %>% 
+  mutate(
+    tot_emp = as.numeric(tot_emp),
+    jobs_1000 = as.numeric(jobs_1000),
+    h_mean = as.numeric(h_mean),
+    a_mean = as.numeric(a_mean)
+  )
+
+glimpse(msa_allrecs)
+
+#save for use in analysis steps
+saveRDS(msa_allrecs, "processed_data/msa_allrecs.rds")
+
+
+
+##--------------------------------------------------------------
+
+#### Bring in the national-level data #####
+
+rawnationaldata <- read_excel("raw_data/oesm18nat/national_M2018_dl.xlsx")
+
+#clean names
+national_allrecs <- rawnationaldata %>% 
+  clean_names()
+
+names(national_allrecs)
+
+#cut down to only the measures we'll use:
+national_allrecs <- national_allrecs %>% 
+  mutate(
+    data_scope = "national"
+  ) %>% 
+  select(
+    data_scope,
+    occ_code,
+    occ_title,
+    occ_group,
+    tot_emp,
+    h_mean,
+    a_mean
+  ) 
+
+#format columns
+national_allrecs <- national_allrecs %>% 
+  mutate(
+    tot_emp = as.numeric(tot_emp),
+    h_mean = as.numeric(h_mean),
+    a_mean = as.numeric(a_mean)
+  )
+
+glimpse(national_allrecs)
+
+#save for use in analysis steps
+saveRDS(national_allrecs, "processed_data/national_allrecs.rds")
