@@ -1,11 +1,9 @@
 # Data source: BLS Occupational Employment Statistics (2018) 
 # https://www.bls.gov/oes/tables.htm
 
-
 library(tidyverse)
 library(janitor)
 library(readxl)
-library(writexl)
 
 
 #import data for all states, all occupations
