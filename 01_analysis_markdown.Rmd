@@ -16,6 +16,8 @@ library(tigris)
 library(sf)
 library(tmap)
 library(tmaptools)
+library(DT)
+library(kableExtra)
 
 #load saved processed data files from step 00
 states_allrecs <- readRDS("processed_data/states_allrecs.rds")
@@ -42,7 +44,7 @@ A description of whom this category includes:
 https://www.bls.gov/oes/current/oes350000.htm
 
 
-```{r }
+```{r, echo=FALSE}
 
 state_foodserv_all <- states_allrecs %>% 
   filter(str_starts(occ_code, "35-"))
@@ -50,10 +52,12 @@ state_foodserv_all <- states_allrecs %>%
 ```
 
 Check to see if any our missing or redacted
-```{r }
+```{r, echo=FALSE}
  
 state_foodserv_all %>% 
-  filter(is.na(tot_emp))
+  filter(is.na(tot_emp)) %>% 
+  kable() %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left")
 
 ```
 
@@ -61,27 +65,35 @@ Just a handful. No worries then, we can work with that.
 
 
 Do individually listed items add up to the total major? Look at a grand totals and then a few individual states to see.
-```{r}
+```{r, echo=FALSE}
 
 state_foodserv_all %>% 
   group_by(occ_group) %>% 
-  summarise(sum(tot_emp, na.rm = TRUE))
+  summarise(sum(tot_emp, na.rm = TRUE)) %>% 
+  kable() %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left")
 
 
 state_foodserv_all %>% 
   filter(st == "NJ") %>% 
   group_by(occ_group) %>% 
-  summarise(sum(tot_emp, na.rm = TRUE))
+  summarise(sum(tot_emp, na.rm = TRUE)) %>% 
+  kable() %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left")
 
 state_foodserv_all %>% 
   filter(st == "CA") %>% 
   group_by(occ_group) %>% 
-  summarise(sum(tot_emp, na.rm = TRUE))
+  summarise(sum(tot_emp, na.rm = TRUE)) %>% 
+  kable() %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left")
 
 state_foodserv_all %>% 
   filter(st == "MO") %>% 
   group_by(occ_group) %>% 
-  summarise(sum(tot_emp, na.rm = TRUE))
+  summarise(sum(tot_emp, na.rm = TRUE)) %>% 
+  kable() %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left")
 
 
 
@@ -90,34 +102,42 @@ state_foodserv_all %>%
 
 This is pretty close! There could be some NAs among the detailed categories which could increase the spread for certain states, but this appears to be what's going on.  
   
+<br>
+<br>
+
 
 ### States by overall totals
 
 To keep things simple to start, we'll just look at the overarching total from the major category record for each state. 
 
-```{r}
+```{r, echo=FALSE}
 
 state_foodserv_totalsonly <- state_foodserv_all %>% 
   filter(occ_code == "35-0000") %>% 
   select(-occ_title, -occ_group, -h_mean)
 
-state_foodserv_totalsonly
 
 ```
 
-#Total people employed overall? Let's double-check check to make sure we know what kind of workers are included here and who isn't...if there are any known quirks to be aware of.
-```{r}
+Total people employed overall.  
+Let's double-check check to make sure we know what kind of workers are included here and who isn't...if there are any known quirks to be aware of.
+```{r, echo=FALSE}
 #total
 state_foodserv_totalsonly %>% 
-  summarise(sum(tot_emp))
+  summarise(sum(tot_emp)) %>% 
+  kable() %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left")
 
 ```
 
 Which states have the highest rate of employment in this sector per 1000?
-```{r}
+```{r, echo=FALSE}
 
 state_foodserv_totalsonly %>% 
-  arrange(desc(jobs_1000))
+  arrange(desc(jobs_1000)) %>% 
+  datatable(rownames = FALSE) %>% 
+  formatStyle('jobs_1000', fontWeight = 'bold') %>% 
+  formatStyle('state', fontWeight = 'bold')
 
 ```
 
@@ -125,36 +145,39 @@ This is interesting...as some of the states with the lowest populations actually
   
 What's the range in values?
 
-```{r}
+```{r, echo=FALSE}
 
 state_foodserv_totalsonly %>% 
   summarise(minvalue = min(jobs_1000),
-            maxvalue = max(jobs_1000))
+            maxvalue = max(jobs_1000)) %>% 
+  kable() %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left")
 
 ```
 
 
-
+<br>
 
 ### Metropolitan area totals
 
 Let's look at the same thing, the grand totals for all the food prep/service workers - but this time pulling from the Metro area (MSA) data.
 
-```{r}
+```{r, echo=FALSE}
 
 msa_foodserv_totalsonly <- msa_allrecs %>% 
   select(-occ_title, -occ_group, -h_mean) %>% 
   filter(occ_code == "35-0000")
 
-msa_foodserv_totalsonly
-
 ```
 
 Which metro areas have the highest rate of workers in the industry?
-```{r}
+```{r, echo=FALSE}
 
 msa_foodserv_totalsonly %>% 
-  arrange(desc(jobs_1000))
+  arrange(desc(jobs_1000)) %>% 
+  datatable(rownames = FALSE) %>% 
+  formatStyle('jobs_1000', fontWeight = 'bold') %>% 
+  formatStyle('area_name', fontWeight = 'bold')
 
 
 ```
@@ -163,11 +186,13 @@ Well it looks like my hometown area in South Jersey, near Atlantic City, is numb
   
 What's the range in values for per 1000 figure here so we have a sense of it.
 
-```{r}
+```{r, echo=FALSE}
 
 msa_foodserv_totalsonly %>% 
   summarise(minvalue = min(jobs_1000),
-            maxvalue = max(jobs_1000))
+            maxvalue = max(jobs_1000)) %>% 
+  kable() %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left")
 
 
 ```
@@ -175,7 +200,7 @@ msa_foodserv_totalsonly %>%
 That's a pretty large difference between the worst metros and the best.  
 Let's take a quick look at what the distribution looks like with a historgram.
 
-```{r}
+```{r, echo=FALSE}
 
 ggplot(msa_foodserv_totalsonly, aes(x = jobs_1000)) +
   geom_histogram() +
@@ -188,6 +213,7 @@ ggplot(msa_foodserv_totalsonly, aes(x = jobs_1000)) +
 The plot above shows that metro areas all the way to the right - our worst-case metros - really do have an outsized vulnerability compared with the rest of the country. The mean (shown by the blue line above) is about 100 per 1000, or 1 out of every 10 workers.
 
 
+<br>
 
 ### Combined Food Preparation and Serving Workers, Including Fast Food
 
@@ -195,27 +221,30 @@ A more specific group within the larger sector, let's take a look. (Need to inve
 
 By state:
 
-```{r}
+```{r, echo=FALSE}
 
 state_foodserv_all %>% 
   select(-occ_group, -h_mean) %>% 
   filter(occ_code == "35-3021") %>% 
-  arrange(desc(jobs_1000))
+  arrange(desc(jobs_1000)) %>% 
+  datatable(rownames = FALSE) 
 
 
 ```
 
 By metro area:
-```{r}
+```{r, echo=FALSE}
 
 msa_allrecs %>% 
   select(-occ_group, -h_mean) %>% 
   filter(occ_code == "35-3021") %>% 
-  arrange(desc(jobs_1000))
+  arrange(desc(jobs_1000)) %>% 
+  datatable(rownames = FALSE) 
 
 ```
 
-
+<br>
+<br>
 
 # Slicing out a specific type of worker
 
@@ -225,85 +254,144 @@ Clearly wait staff is going to be hit hard even if some establishments stay open
 
 Let's look at just wait staff at the state level
 
-```{r}
+```{r, echo=FALSE}
 state_foodserv_all %>% 
   select(-occ_group, -h_mean) %>% 
   filter(occ_code == "35-3031") %>% 
-  arrange(desc(jobs_1000))
+  arrange(desc(jobs_1000)) %>% 
+  datatable(rownames = FALSE) 
+
 ```
 
 And the metro area level...
-```{r}
+```{r, echo=FALSE}
 msa_allrecs %>% 
   select(-occ_group, -h_mean) %>% 
   filter(occ_code == "35-3031") %>% 
-  arrange(desc(jobs_1000))
+  arrange(desc(jobs_1000)) %>% 
+  datatable(rownames = FALSE) 
 
 ```
 
 Well that's not good again for South Jersey. Both Ocean City and Atlantic City both listed here.
 
-
+<br>
 
 ### Dishwashers
 
 By state:
 
-```{r}
+```{r, echo=FALSE}
 
 state_foodserv_all %>% 
   select(-occ_group, -h_mean) %>% 
   filter(occ_code == "35-9021") %>% 
-  arrange(desc(jobs_1000))
+  arrange(desc(jobs_1000)) %>% 
+  datatable(rownames = FALSE) 
 
 
 ```
 
 By metro area:
-```{r}
+```{r, echo=FALSE}
 
 msa_allrecs %>% 
   select(-occ_group, -h_mean) %>% 
   filter(occ_code == "35-9021") %>% 
-  arrange(desc(jobs_1000))
+  arrange(desc(jobs_1000)) %>% 
+  datatable(rownames = FALSE) 
 
 ```
 
 
+<br>
 
 ### Bartenders
 
 By state:
 
-```{r}
+```{r, echo=FALSE}
 
 state_foodserv_all %>% 
   select(-occ_group, -h_mean) %>% 
   filter(occ_code == "35-3011") %>% 
-  arrange(desc(jobs_1000))
+  arrange(desc(jobs_1000)) %>% 
+  datatable(rownames = FALSE) 
 
 
 ```
 
 By metro area:
-```{r}
+```{r, echo=FALSE}
 
 msa_allrecs %>% 
   select(-occ_group, -h_mean) %>% 
   filter(occ_code == "35-3011") %>% 
-  arrange(desc(jobs_1000))
+  arrange(desc(jobs_1000)) %>% 
+  datatable(rownames = FALSE) 
 
 ```
 
 There's an irony here to Ocean City having the most bartenders given it's a dry city - there are no bars. But of course this is the MSA which extends around it and to the south.
 
+<br>
+<br>
+
+# Next up: Earnings power lost
+
+If we multiply the average annual earnings for each occupation by the number of employed people in that profession - both of which the BLS data includes - that should give us an estimated dollar value we can peg to the lost potential earnings we're talking about.  
+  
+Let's give that a try.  
+  
+To keep things a bit more simple to start, let's do this with the national figures for all of the United States.
+
+```{r, echo=FALSE}
+national_foodserv_all <- national_allrecs %>% 
+  filter(str_starts(occ_code, "35-")) %>% 
+  distinct(occ_title,.keep_all = TRUE)
+
+national_foodserv_all
+```
+
+We'll add the new column for earning power
+
+```{r, echo=FALSE}
+national_foodserv_all <- national_foodserv_all %>% 
+  mutate(
+    earning_power_dollars = tot_emp * a_mean
+  ) 
+
+national_foodserv_all %>% 
+  select(occ_title, occ_group, earning_power_dollars, tot_emp) %>% 
+  datatable(rownames = FALSE) %>% 
+  formatCurrency(3, digits = 0)
+
+
+```
+
+So for the entire major cateory here, we're talking about potentially **$340 BILLION** in annual earning power potentially evaporating if all those people lost their jobs.  
+  
+Waiters and waitresses alone would be nearly **$67 billion** in earnings lost.  
+
+Bartenders would be another **$17 billion**.
+
+Dishwashers would be nearly **$12 billion**.
+
+Hosts and hostesses who work at restaurants, lounges and coffee shops would be nearly **$10 billion**.
+
+
+
+
+
+<br>
+<br>
 
 # MAPS
 
-#### A few maps for the heck of it 
+#### A few rudimentary maps for the heck of it 
 
 Bring in geospatial boundaries of MSA via CBSA tigris download, and states as well
-```{r}
+```{r, include=FALSE}
 cbsa_geo <- core_based_statistical_areas(cb = TRUE)
 states_geo <- states(cb = TRUE)
 
@@ -312,16 +400,16 @@ names(states_geo)
 ```
 
 We'll try joining this to our MSA totals for the industry major category 
-```{r}
+```{r, echo=FALSE}
 
-msa_foodserv_totalsonly
+# msa_foodserv_totalsonly
 
 geo_msa_foodserv_totalsonly <- geo_join(cbsa_geo, msa_foodserv_totalsonly, "GEOID", "area")
 
 ```
 
 Map it
-```{r}
+```{r, echo=FALSE}
 tm_shape(geo_msa_foodserv_totalsonly) +
   tm_polygons("jobs_1000")
 
@@ -330,9 +418,9 @@ tm_shape(geo_msa_foodserv_totalsonly) +
 
 ### State map of total industry
 
-```{r}
+```{r, echo=FALSE}
 
-state_foodserv_totalsonly
+# state_foodserv_totalsonly
 
 geo_state_foodserv_totalsonly <- geo_join(states_geo, state_foodserv_totalsonly, "GEOID", "area")
 
@@ -340,21 +428,3 @@ tm_shape(geo_state_foodserv_totalsonly) +
   tm_polygons("jobs_1000")
 
 ```
-
-
-```{r}
-
-
-
-```
-
-
-
-
-
-
-
-
-
-
-

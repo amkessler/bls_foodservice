@@ -1,0 +1,430 @@
+---
+title: "As restaurants/bars shutter themselves, how many food service workers are out there"
+author: "Aaron Kessler"
+date: "3/19/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(janitor)
+library(readxl)
+library(writexl)
+library(kableExtra)
+library(formattable)
+# library(tigris)
+# library(sf)
+# library(tmap)
+# library(tmaptools)
+
+
+#load saved processed data files from step 00
+states_allrecs <- readRDS("processed_data/states_allrecs.rds")
+msa_allrecs <- readRDS("processed_data/msa_allrecs.rds")
+national_allrecs <- readRDS("processed_data/national_allrecs.rds")
+
+
+#limit to just the 50 states and DC
+states_allrecs <- states_allrecs %>% 
+  filter(!st %in% c("GU", "VI", "PR"))
+
+msa_allrecs <- msa_allrecs %>% 
+  filter(!prim_state %in% c("GU", "VI", "PR"))
+
+
+```
+
+Each day we're seeing more cities, even entire states like Maryland, Ohio and Illinois, closing down restaurants, bars, coffee shops and similar establishments in order to prevent people from grouping together and spreading the coronavirus. Numerous such establishments are closing voluntarily around the country, or switching to take-out/delivery only.  
+  
+In light of that, millions of food service workers could lose their paychecks and jobs, temporarily or for good.  
+  
+The [Bureau of Labor Statistics](https://www.bls.gov/oes/tables.html) puts out extensive data on the workforce, including details down to the state and metro level. We'll use that to analyze for notable info to share with readers. (The most recent localized data is from 2018, that's what we'll use here.)  
+  
+There are top-level "major" categories of occupations that the agency captures, including the one we'll use tied to the food service industry, "Food prepration and server worker occupations."  
+You can see the full details of that category [here](https://www.bls.gov/oes/current/oes350000.htm), and it includes people like cooks, wait stuff, dishwashers, restaurant hosts, bartenders, as well as their supervisors up the chain.
+
+
+## The National Scope
+
+For the entire cateory, there are about **13 million** Americans across the United States we're talking about here, with potentially **$340 billion** in annual earning power evaporating if all those people were to lose their jobs or stop getting paid.  
+  
+* Waiters and waitresses alone make up more than 2.5 million people representing nearly **$67 billion** in annual earnings lost 
+
+* Bartenders top 630,000 workers and would be another **$17 billion**
+
+* More than half a million people working as dishwashers, another **$12 billion** in lost income
+
+* There are more than 400,000 hosts and hostesses who work at restaurants, lounges and coffee shops, another **$10 billion**
+
+```{r, echo=FALSE}
+national_foodserv_all <- national_allrecs %>% 
+  filter(str_starts(occ_code, "35-")) %>% 
+  distinct(occ_title,.keep_all = TRUE)
+
+national_foodserv_all <- national_foodserv_all %>% 
+  mutate(
+    earning_power_dollars = tot_emp * a_mean
+  ) 
+
+
+```
+
+<br>
+
+## State and local level: workforces in food service
+
+Now let's analyze the BLS data more granularly to explore how different states compare with each other.  
+  
+Since areas with the highest populations naturally tend to have more workers of any type, including those at restaurants and bars, we'll account for that by using a rate of "jobs per 1,000 workers" so it's more apples-to-apples. E.g. for each 1,000 workers in a state or metro area, how many are in food service. 
+  
+Doing that, we start to see some interesting trends.  
+
+```{r, echo=FALSE}
+
+state_foodserv_all <- states_allrecs %>% 
+  filter(str_starts(occ_code, "35-"))
+
+```
+
+First we'll look at the overarching total from our top-level category for each state. 
+
+```{r, echo=FALSE}
+
+state_foodserv_totalsonly <- state_foodserv_all %>% 
+  filter(occ_code == "35-0000") %>% 
+  select(state, tot_emp, jobs_1000)
+
+```
+
+Which states have the highest rate of employment in this sector per 1000? (Shown below in the *jobs_1000* column).  
+We see that a number of less-populated states you might not expect top the list - they may be smaller, but a much higher percentage of their workforce is comprised of food service workers.
+
+```{r, echo=FALSE}
+
+state_foodserv_totalsonly %>%
+  arrange(desc(jobs_1000)) %>% 
+  head(10) %>% 
+  kable(format.args = list(big.mark = ",")) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>% 
+  column_spec(3, background = "yellow")
+
+```
+
+What's the range in values we're talking about states having by that measure: 
+
+```{r, echo=FALSE}
+
+state_foodserv_totalsonly %>% 
+  summarise(minvalue = min(jobs_1000),
+            maxvalue = max(jobs_1000)) %>% 
+  kable() %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left")
+
+```
+
+
+Now we'll do the same thing but for **Metropolitan Statistical Areas (MSAs)**...
+
+```{r, echo=FALSE}
+
+msa_foodserv_all <- msa_allrecs %>% 
+  filter(str_starts(occ_code, "35-"))
+
+
+msa_foodserv_totalsonly <- msa_foodserv_all %>% 
+  filter(occ_code == "35-0000") %>% 
+  select(area_name, tot_emp, jobs_1000) 
+
+
+```
+
+Which metro areas have the highest rate of workers in the industry?
+```{r, echo=FALSE}
+
+msa_foodserv_totalsonly %>% 
+  arrange(desc(jobs_1000)) %>% 
+  head(10) %>% 
+  kable(format.args = list(big.mark = ",")) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>% 
+  column_spec(3, background = "yellow")
+
+
+
+```
+
+Well it looks like my hometown region, in South Jersey near Atlantic City, is number 3. :(
+  
+What's the range in values?
+
+```{r, echo=FALSE}
+
+msa_foodserv_totalsonly %>% 
+  summarise(minvalue = min(jobs_1000),
+            maxvalue = max(jobs_1000)) %>% 
+  kable() %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left")
+
+
+```
+
+That's a pretty large difference between the worst metros and the best.  
+Let's take a quick look at what the distribution looks like with a historgram.
+
+```{r, echo=FALSE}
+
+ggplot(msa_foodserv_totalsonly, aes(x = jobs_1000)) +
+  geom_histogram() +
+  geom_vline(aes(xintercept=mean(jobs_1000)),
+            color="darkblue", linetype="dashed", size=1)
+
+
+```
+
+The plot above shows that metro areas all the way to the right - our worst-case metros - really do have an outsized vulnerability compared with the rest of the country. The mean (shown by the blue line above) is about 100 per 1000, or 1 out of every 10 workers.
+
+
+<br>
+
+## Let's slice out more specifc portions of the food service industry
+
+<br>
+
+### "Combined Food Preparation and Serving Workers, Including Fast Food"
+
+The BLS gives this designation to a more filtered group within the larger sector, let's take a look. (*Need to investiate just what this does and doesn't include a bit more, but including here for now*.)
+
+Here the top states for that group of workers:
+
+```{r, echo=FALSE}
+
+state_foodserv_combinedprepserve <- state_foodserv_all %>% 
+  filter(occ_code == "35-3021") %>% 
+  select(state, occ_title, jobs_1000) 
+
+
+state_foodserv_combinedprepserve %>% 
+  arrange(desc(jobs_1000)) %>% 
+  head(10) %>% 
+  kable(format.args = list(big.mark = ",")) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>% 
+  column_spec(2, color = "darkgreen")
+
+```
+
+And here are the top metro areas:
+```{r, echo=FALSE}
+
+msa_foodserv_combinedprepserve <- msa_allrecs %>% 
+  filter(occ_code == "35-3021") %>% 
+  select(area_name, occ_title, jobs_1000) 
+
+
+msa_foodserv_combinedprepserve %>% 
+  arrange(desc(jobs_1000)) %>% 
+  head(10) %>% 
+  kable(format.args = list(big.mark = ",")) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>% 
+  column_spec(2, color = "darkgreen")
+
+
+```
+
+
+<br>
+
+### Waiters/Waitresses
+
+Clearly wait staff is going to be hit hard even if some establishments stay open for take-out and delivery. They won't need servers for that, so they're likely to still lose out.
+
+Let's look at just wait staff rates at the state level:
+
+```{r, echo=FALSE}
+
+state_waiters <- state_foodserv_all %>% 
+  filter(occ_code == "35-3031")  %>% 
+  select(state, occ_title, jobs_1000) 
+
+state_waiters %>% 
+  arrange(desc(jobs_1000)) %>% 
+  head(10) %>% 
+  kable(format.args = list(big.mark = ",")) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>% 
+  column_spec(2, color = "darkgreen")
+
+```
+
+And the top metro areas:
+```{r, echo=FALSE}
+msa_waiters <- msa_allrecs %>% 
+  filter(occ_code == "35-3031")  %>% 
+  select(area_name, occ_title, jobs_1000)
+
+msa_waiters %>% 
+  arrange(desc(jobs_1000)) %>% 
+  head(10) %>% 
+  kable(format.args = list(big.mark = ",")) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>% 
+  column_spec(2, color = "darkgreen")
+
+
+```
+
+Well that's not good again for South Jersey. Both the Ocean City and Atlantic City MSAs are topping the list above.
+
+<br>
+
+### Dishwashers
+
+Another group likely not needed if there aren't patrons using any dishes, glasses or utensils anymore.  
+  
+Here are the top concentrations by state:
+
+```{r, echo=FALSE}
+
+state_dishwashers <- state_foodserv_all %>% 
+  filter(occ_code == "35-9021") %>% 
+  select(state, occ_title, jobs_1000)
+
+state_dishwashers %>% 
+  arrange(desc(jobs_1000)) %>% 
+  head(10) %>% 
+  kable(format.args = list(big.mark = ",")) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>% 
+  column_spec(2, color = "darkgreen")
+
+
+```
+
+And then dishwashers by metro area:
+```{r, echo=FALSE}
+
+msa_dishwashers <- msa_allrecs %>% 
+  filter(occ_code == "35-9021") %>% 
+  select(area_name, occ_title, jobs_1000)
+
+msa_dishwashers %>% 
+  arrange(desc(jobs_1000)) %>% 
+  head(10) %>% 
+  kable(format.args = list(big.mark = ",")) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>% 
+  column_spec(2, color = "darkgreen")
+
+```
+
+There are quite a lot of dishwaters per capita near Cape Cod!
+
+<br>
+
+### Bartenders
+
+With bars and restaurants closed, safe to say bartenders aren't going to be working. Even establishments that try to stay open for take-out/delivery won't need bartenders for that.  
+  
+Here are the highest concentrations by state:
+
+```{r, echo=FALSE}
+
+state_bartenders <- state_foodserv_all %>% 
+  filter(occ_code == "35-3011") %>% 
+  select(state, occ_title, jobs_1000)
+
+state_bartenders %>% 
+  arrange(desc(jobs_1000)) %>% 
+  head(10) %>% 
+  kable(format.args = list(big.mark = ",")) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>% 
+  column_spec(2, color = "darkgreen")
+
+
+```
+
+By metro area:
+```{r, echo=FALSE}
+
+msa_bartenders <- msa_allrecs %>% 
+  filter(occ_code == "35-3011") %>% 
+  select(area_name, occ_title, jobs_1000)
+
+msa_bartenders %>% 
+  arrange(desc(jobs_1000)) %>% 
+  head(10) %>% 
+  kable(format.args = list(big.mark = ",")) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>% 
+  column_spec(2, color = "darkgreen") 
+
+```
+
+So what's up with LaCrosse, Wisconsin?? They must really like to drink up there. Could be some good local color for a piece like this.  
+  
+There's an irony here too that Ocean City makes the top 10 for bartenders given it's a dry city - there's no alcohol. But of course this is the MSA which extends around its borders and to the south, where there are plenty of bars to make up for it.  
+  
+<br>
+
+Finally, we'll save all these breakdowns in a single Excel file for easy sharing.
+
+```{r}
+
+sheets <- list("national_all" = national_foodserv_all,
+              "state_all" = state_foodserv_all,
+              "msa_all" = msa_foodserv_all,
+              "state_totalsonly" = state_foodserv_totalsonly,
+              # "state_combinedprepserve" = state_foodserv_combinedprepserve, #leaving out
+              "state_waiters" = state_waiters,
+              "state_dishwashers" = state_dishwashers,
+              "state_bartenders" = state_bartenders,
+              "msa_totalsonly" = msa_foodserv_totalsonly,
+              # "msa_combinedprepserve" = msa_foodserv_combinedprepserve,
+              "msa_waiters" = msa_waiters,
+              "msa_dishwashers" = msa_dishwashers,
+              "msa_bartenders" = msa_bartenders)
+  
+write_xlsx(sheets, "output/exported_breakdowns.xlsx")
+
+
+```
+
+
+
+<!-- # MAPS -->
+
+<!-- #### A few rudimentary maps for the heck of it  -->
+
+<!-- Bring in geospatial boundaries of MSA via CBSA tigris download, and states as well -->
+<!-- ```{r, include=FALSE} -->
+<!-- cbsa_geo <- core_based_statistical_areas(cb = TRUE) -->
+<!-- states_geo <- states(cb = TRUE) -->
+
+<!-- names(cbsa_geo) -->
+<!-- names(states_geo) -->
+<!-- ``` -->
+
+<!-- We'll try joining this to our MSA totals for the industry major category  -->
+<!-- ```{r, echo=FALSE} -->
+
+<!-- # msa_foodserv_totalsonly -->
+
+<!-- geo_msa_foodserv_totalsonly <- geo_join(cbsa_geo, msa_foodserv_totalsonly, "GEOID", "area") -->
+
+<!-- ``` -->
+
+<!-- Map it -->
+<!-- ```{r, echo=FALSE} -->
+<!-- tm_shape(geo_msa_foodserv_totalsonly) + -->
+<!--   tm_polygons("jobs_1000") -->
+
+
+<!-- ``` -->
+
+<!-- ### State map of total industry -->
+
+<!-- ```{r, echo=FALSE} -->
+
+<!-- # state_foodserv_totalsonly -->
+
+<!-- geo_state_foodserv_totalsonly <- geo_join(states_geo, state_foodserv_totalsonly, "GEOID", "area") -->
+
+<!-- tm_shape(geo_state_foodserv_totalsonly) + -->
+<!--   tm_polygons("jobs_1000") -->
+
+<!-- ``` -->
