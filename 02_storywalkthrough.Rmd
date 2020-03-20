@@ -1,5 +1,5 @@
 ---
-title: "As restaurants/bars shutter themselves, how many food service workers are out there"
+title: "As restaurants/bars shutter themselves, how many food service workers are out there and where are they most concentrated"
 author: "Aaron Kessler"
 date: "3/19/2020"
 output: html_document
@@ -45,6 +45,7 @@ The [Bureau of Labor Statistics](https://www.bls.gov/oes/tables.html) puts out e
 There are top-level "major" categories of occupations that the agency captures, including the one we'll use tied to the food service industry, "Food prepration and server worker occupations."  
 You can see the full details of that category [here](https://www.bls.gov/oes/current/oes350000.htm), and it includes people like cooks, wait stuff, dishwashers, restaurant hosts, bartenders, as well as their supervisors up the chain.
 
+<br>
 
 ## The National Scope
 
@@ -187,52 +188,8 @@ The plot above shows that metro areas all the way to the right - our worst-case 
 
 <br>
 
-## Let's slice out more specifc portions of the food service industry
+## Drilling down to specifc occupations within the food service industry
 
-<br>
-
-### "Combined Food Preparation and Serving Workers, Including Fast Food"
-
-The BLS gives this designation to a more filtered group within the larger sector, let's take a look. (*Need to investiate just what this does and doesn't include a bit more, but including here for now*.)
-
-Here the top states for that group of workers:
-
-```{r, echo=FALSE}
-
-state_foodserv_combinedprepserve <- state_foodserv_all %>% 
-  filter(occ_code == "35-3021") %>% 
-  select(state, occ_title, jobs_1000) 
-
-
-state_foodserv_combinedprepserve %>% 
-  arrange(desc(jobs_1000)) %>% 
-  head(10) %>% 
-  kable(format.args = list(big.mark = ",")) %>%
-  kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>% 
-  column_spec(2, color = "darkgreen")
-
-```
-
-And here are the top metro areas:
-```{r, echo=FALSE}
-
-msa_foodserv_combinedprepserve <- msa_allrecs %>% 
-  filter(occ_code == "35-3021") %>% 
-  select(area_name, occ_title, jobs_1000) 
-
-
-msa_foodserv_combinedprepserve %>% 
-  arrange(desc(jobs_1000)) %>% 
-  head(10) %>% 
-  kable(format.args = list(big.mark = ",")) %>%
-  kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>% 
-  column_spec(2, color = "darkgreen")
-
-
-```
-
-
-<br>
 
 ### Waiters/Waitresses
 
@@ -361,7 +318,50 @@ There's an irony here too that Ocean City makes the top 10 for bartenders given 
   
 <br>
 
-Finally, we'll save all these breakdowns in a single Excel file for easy sharing.
+
+### "Combined Food Preparation and Serving Workers, Including Fast Food"
+
+The BLS gives this designation to a more filtered group within the larger sector, let's take a look. (*Need to investiate just what this does and doesn't include a bit more, but including here for now*.)
+
+Here the top states for that group of workers:
+
+```{r, echo=FALSE}
+
+state_foodserv_combinedprepserve <- state_foodserv_all %>% 
+  filter(occ_code == "35-3021") %>% 
+  select(state, occ_title, jobs_1000) 
+
+
+state_foodserv_combinedprepserve %>% 
+  arrange(desc(jobs_1000)) %>% 
+  head(10) %>% 
+  kable(format.args = list(big.mark = ",")) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>% 
+  column_spec(2, color = "darkgreen")
+
+```
+
+And here are the top metro areas:
+```{r, echo=FALSE}
+
+msa_foodserv_combinedprepserve <- msa_allrecs %>% 
+  filter(occ_code == "35-3021") %>% 
+  select(area_name, occ_title, jobs_1000) 
+
+
+msa_foodserv_combinedprepserve %>% 
+  arrange(desc(jobs_1000)) %>% 
+  head(10) %>% 
+  kable(format.args = list(big.mark = ",")) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>% 
+  column_spec(2, color = "darkgreen")
+
+
+```
+
+<br>
+
+Finally, we'll save all these breakdowns in a **single Excel file** for easy sharing.
 
 ```{r}
 
