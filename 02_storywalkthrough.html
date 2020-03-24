@@ -394,10 +394,6 @@ You can see the full details of that category <a href="https://www.bls.gov/oes/c
 <li><p>There are more than 400,000 hosts and hostesses who work at restaurants, lounges and coffee shops, another <strong>$10 billion</strong></p></li>
 </ul>
 <p>Just as a point of comparison, what are different “major” categories used by BLS and how to they compare… where does food service fit in? It’s the third highest: only office/admin occupations and sales occupations employ more people nationally.</p>
-<pre class="r"><code>national_allrecs %&gt;% 
-  filter(occ_group == &quot;major&quot;) %&gt;% 
-  arrange(desc(tot_emp)) %&gt;% 
-  select(occ_code, occ_title, tot_emp)</code></pre>
 <pre><code>## # A tibble: 22 x 3
 ##    occ_code occ_title                                           tot_emp
 ##    &lt;chr&gt;    &lt;chr&gt;                                                 &lt;dbl&gt;
