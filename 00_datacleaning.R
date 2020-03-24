@@ -46,6 +46,15 @@ states_allrecs <- states_allrecs %>%
     a_mean = as.numeric(a_mean)
   )
 
+
+## we'll create a new column that moves the decimal over one place from jobs_1000
+## to be jobs per 100, a more readable "share of workforce
+states_allrecs <- states_allrecs %>% 
+  mutate(
+    share_of_workforce = jobs_1000 / 10
+  ) 
+
+
 #save for use in analysis steps
 saveRDS(states_allrecs, "processed_data/states_allrecs.rds")
 
@@ -87,6 +96,15 @@ msa_allrecs <- msa_allrecs %>%
     h_mean = as.numeric(h_mean),
     a_mean = as.numeric(a_mean)
   )
+
+
+## we'll create a new column that moves the decimal over one place from jobs_1000
+## to be jobs per 100, a more readable "share of workforce
+msa_allrecs <- msa_allrecs %>% 
+  mutate(
+    share_of_workforce = jobs_1000 / 10
+  ) 
+
 
 glimpse(msa_allrecs)
 
