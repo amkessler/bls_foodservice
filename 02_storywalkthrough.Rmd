@@ -72,6 +72,20 @@ national_foodserv_all <- national_foodserv_all %>%
 
 ```
 
+Just as a point of comparison, what are different "major" categories used by BLS and how to they compare... where does food service fit in? It's the third highest: only office/admin occupations and sales occupations employ more people nationally.
+
+```{r, echo=FALSE}
+
+national_allrecs %>% 
+  filter(occ_group == "major") %>% 
+  arrange(desc(tot_emp)) %>% 
+  select(occ_code, occ_title, tot_emp)
+
+
+```
+
+
+
 <br>
 
 ## State and local level: workforces in food service
