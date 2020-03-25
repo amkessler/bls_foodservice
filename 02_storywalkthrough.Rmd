@@ -301,11 +301,11 @@ state_bartenders <- state_foodserv_all %>%
   select(state, occ_title, jobs_1000)
 
 state_bartenders %>% 
-  arrange(desc(jobs_1000)) %>% 
-  head(10) %>% 
-  kable(format.args = list(big.mark = ",")) %>%
-  kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>% 
-  column_spec(2, color = "darkgreen")
+  arrange(desc(jobs_1000)) 
+  # head(10) %>% 
+  # kable(format.args = list(big.mark = ",")) %>%
+  # kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>% 
+  # column_spec(2, color = "darkgreen")
 
 
 ```
