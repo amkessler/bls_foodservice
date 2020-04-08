@@ -1,0 +1,200 @@
+---
+title: "Home Healthcare Aides"
+author: "Aaron Kessler"
+date: "4/8/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(janitor)
+library(readxl)
+library(writexl)
+library(kableExtra)
+library(formattable)
+# library(tigris)
+# library(sf)
+# library(tmap)
+# library(tmaptools)
+
+
+#load saved processed data files from step 00
+states_allrecs <- readRDS("processed_data/states_allrecs.rds")
+msa_allrecs <- readRDS("processed_data/msa_allrecs.rds")
+national_allrecs <- readRDS("processed_data/national_allrecs.rds")
+
+
+#limit to just the 50 states and DC
+states_allrecs <- states_allrecs %>% 
+  filter(!st %in% c("GU", "VI", "PR"))
+
+msa_allrecs <- msa_allrecs %>% 
+  filter(!prim_state %in% c("GU", "VI", "PR"))
+
+
+# pull out just home health aides (code 31-1011)
+national_homehealthaides <- national_allrecs %>% 
+  filter(occ_code == "31-1011")
+
+states_homehealthaides <- states_allrecs %>% 
+  filter(occ_code == "31-1011") %>% 
+  select(state, tot_emp, jobs_1000)
+
+msa_homehealthaides <- msa_allrecs %>% 
+  filter(occ_code == "31-1011") %>% 
+  select(area_name, tot_emp, jobs_1000)
+
+
+```
+
+Each day we're seeing more cities, even entire states like Maryland, Ohio and Illinois, closing down restaurants, bars, coffee shops and similar establishments in order to prevent people from grouping together and spreading the coronavirus. Numerous such establishments are closing voluntarily around the country, or switching to take-out/delivery only.  
+
+The [Bureau of Labor Statistics](https://www.bls.gov/oes/tables.html) puts out extensive data on the workforce, including details down to the state and metro level. (The most recent localized data is from 2018, that's what we'll use here.)  
+  
+We'll use the occupation of "Home Health Aides" for this analysis. More information on the category can be found [here](https://www.bls.gov/ooh/healthcare/home-health-aides-and-personal-care-aides.htm).  
+  
+Nationally, about 800,000 people work as such aides. They generally make little money despite the importance of their jobs in keeping people alive - averaging about $12/hr as of 2018.
+
+<br>
+
+## State and local level workforces 
+
+Now let's analyze the BLS data more granularly to explore how different states compare with each other.  
+  
+Since areas with the highest populations naturally tend to have more workers of any type, including those at restaurants and bars, we'll account for that by using a rate of "jobs per 1,000 workers" so it's more apples-to-apples. E.g. for each 1,000 workers in a state or metro area, how many are home health aides. 
+  
+### States
+
+Which states have the highest rate of employment in this sector per 1000? (Shown below in the *jobs_1000* column).  
+We see that a number of less-populated states you might not expect top the list - they may be smaller, but a much higher percentage of their workforce is comprised of food service workers.
+
+```{r, echo=FALSE}
+
+states_homehealthaides %>%
+  arrange(desc(jobs_1000)) %>% 
+  head(10) %>% 
+  kable(format.args = list(big.mark = ",")) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>% 
+  column_spec(3, background = "yellow")
+
+```
+
+What's the range in values we're talking about states having by that measure: 
+
+```{r, echo=FALSE}
+
+states_homehealthaides %>% 
+  summarise(minvalue = min(jobs_1000),
+            maxvalue = max(jobs_1000)) %>% 
+  kable() %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left")
+
+```
+
+That's a pretty large difference between the worst and the best.  
+Let's take a quick look at what the distribution looks like with a historgram. 
+  
+As we can see below, the distribtuion skews left, meaning most states have very few home health aides as a percentage of their workforces, while a smaller number of state have significantly more.
+
+```{r, echo=FALSE}
+
+ggplot(states_homehealthaides, aes(x = jobs_1000)) +
+  geom_histogram() +
+  geom_vline(aes(xintercept=mean(jobs_1000)),
+            color="darkblue", linetype="dashed", size=1)
+
+
+```
+
+Which states have the least home health aides as a share of their workforces?
+
+```{r, echo=FALSE}
+
+states_homehealthaides %>%
+  arrange(jobs_1000) %>% 
+  head(10) %>% 
+  kable(format.args = list(big.mark = ",")) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>% 
+  column_spec(3, background = "yellow")
+
+```
+
+
+The plot above shows that metro areas all the way to the right - our worst-case metros - really do have an outsized vulnerability compared with the rest of the country. The mean (shown by the blue line above) is about 100 per 1000, or 1 out of every 10 workers.
+
+
+### Metro Areas
+
+Now we'll do the same thing but for **Metropolitan Statistical Areas (MSAs)**...
+
+<br>
+
+Finally, we'll save all these breakdowns in a **single Excel file** for easy sharing.
+
+```{r}
+
+sheets <- list("national_all" = national_foodserv_all,
+              "state_all" = state_foodserv_all,
+              "msa_all" = msa_foodserv_all,
+              "state_totalsonly" = state_foodserv_totalsonly,
+              # "state_combinedprepserve" = state_foodserv_combinedprepserve, #leaving out
+              "state_waiters" = state_waiters,
+              "state_dishwashers" = state_dishwashers,
+              "state_bartenders" = state_bartenders,
+              "msa_totalsonly" = msa_foodserv_totalsonly,
+              # "msa_combinedprepserve" = msa_foodserv_combinedprepserve,
+              "msa_waiters" = msa_waiters,
+              "msa_dishwashers" = msa_dishwashers,
+              "msa_bartenders" = msa_bartenders)
+  
+write_xlsx(sheets, "output/exported_breakdowns.xlsx")
+
+
+```
+
+
+
+<!-- # MAPS -->
+
+<!-- #### A few rudimentary maps for the heck of it  -->
+
+<!-- Bring in geospatial boundaries of MSA via CBSA tigris download, and states as well -->
+<!-- ```{r, include=FALSE} -->
+<!-- cbsa_geo <- core_based_statistical_areas(cb = TRUE) -->
+<!-- states_geo <- states(cb = TRUE) -->
+
+<!-- names(cbsa_geo) -->
+<!-- names(states_geo) -->
+<!-- ``` -->
+
+<!-- We'll try joining this to our MSA totals for the industry major category  -->
+<!-- ```{r, echo=FALSE} -->
+
+<!-- # msa_foodserv_totalsonly -->
+
+<!-- geo_msa_foodserv_totalsonly <- geo_join(cbsa_geo, msa_foodserv_totalsonly, "GEOID", "area") -->
+
+<!-- ``` -->
+
+<!-- Map it -->
+<!-- ```{r, echo=FALSE} -->
+<!-- tm_shape(geo_msa_foodserv_totalsonly) + -->
+<!--   tm_polygons("jobs_1000") -->
+
+
+<!-- ``` -->
+
+<!-- ### State map of total industry -->
+
+<!-- ```{r, echo=FALSE} -->
+
+<!-- # state_foodserv_totalsonly -->
+
+<!-- geo_state_foodserv_totalsonly <- geo_join(states_geo, state_foodserv_totalsonly, "GEOID", "area") -->
+
+<!-- tm_shape(geo_state_foodserv_totalsonly) + -->
+<!--   tm_polygons("jobs_1000") -->
+
+<!-- ``` -->
