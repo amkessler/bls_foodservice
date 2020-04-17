@@ -1,7 +1,7 @@
 ---
 title: "Home Healthcare Aides"
 author: "Aaron Kessler"
-date: "4/8/2020"
+date: "4/17/2020"
 output: html_document
 ---
 
@@ -66,7 +66,20 @@ Since areas with the highest populations naturally tend to have more workers of 
   
 ### States
 
-Which states have the highest rate of employment in this sector per 1000? (Shown below in the *jobs_1000* column).  
+Which states have the **lowest** share of their workforce per 1,000 workers as home health aides? (Shown below in the *jobs_1000* column).  
+
+```{r, echo=FALSE}
+
+states_homehealthaides %>%
+  arrange(jobs_1000) %>% 
+  head(15) %>% 
+  kable(format.args = list(big.mark = ",")) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>% 
+  column_spec(3, background = "yellow")
+
+```
+
+Which states have the **highest** share of their workforce per 1,000 workers?
 
 ```{r, echo=FALSE}
 
@@ -106,11 +119,16 @@ ggplot(states_homehealthaides, aes(x = jobs_1000)) +
 
 ```
 
-Which states have the *least* home health aides as a share of their workforces?
+
+### Metro Areas
+
+Now we'll do the same thing but for **Metropolitan Statistical Areas (MSAs)**...
+
+Which metro areas have the **lowest** share of their workforce per 1,000 workers as home health aides? 
 
 ```{r, echo=FALSE}
 
-states_homehealthaides %>%
+msa_homehealthaides %>%
   arrange(jobs_1000) %>% 
   head(15) %>% 
   kable(format.args = list(big.mark = ",")) %>%
@@ -119,12 +137,7 @@ states_homehealthaides %>%
 
 ```
 
-
-### Metro Areas
-
-Now we'll do the same thing but for **Metropolitan Statistical Areas (MSAs)**...
-
-Which metro areas have the highest rate of employment in this sector per 1000 workers? 
+Which metro areas have the **lowest** share of their workforce per 1,000 workers? 
 
 ```{r, echo=FALSE}
 
@@ -136,6 +149,8 @@ msa_homehealthaides %>%
   column_spec(3, background = "yellow")
 
 ```
+
+
 
 What's the range in values we're talking about states having by that measure: 
 
@@ -164,21 +179,6 @@ msa_homehealthaides %>%
 
 
 ```
-
-Which metro areas have the *least* home health aides as a share of their workforces?
-
-```{r, echo=FALSE}
-
-msa_homehealthaides %>%
-  arrange(jobs_1000) %>% 
-  head(15) %>% 
-  kable(format.args = list(big.mark = ",")) %>%
-  kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>% 
-  column_spec(3, background = "yellow")
-
-```
-
-
 
 
 <br>
